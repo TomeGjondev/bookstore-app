@@ -1,5 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { StoreLayout } from '../components/layout/StoreLayout'
+import { BookDetailPage } from '../features/catalog/pages/BookDetailPage'
+import { CatalogPage } from '../features/catalog/pages/CatalogPage'
 import { HomePage } from '../features/home/pages/HomePage'
 
 function PlaceholderPage({ title }: { title: string }) {
@@ -17,7 +19,8 @@ export function App() {
     <Routes>
       <Route element={<StoreLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="books" element={<PlaceholderPage title="Browse our shelves" />} />
+        <Route path="books" element={<CatalogPage />} />
+        <Route path="books/:slug" element={<BookDetailPage />} />
         <Route path="staff-picks" element={<PlaceholderPage title="Staff picks" />} />
         <Route path="new-arrivals" element={<PlaceholderPage title="New arrivals" />} />
         <Route path="about" element={<PlaceholderPage title="Our story" />} />

@@ -107,6 +107,8 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 6. **Useful placeholder routes.** Homepage navigation already works while future features are developed one at a time.
 7. **URL-owned catalog state.** Future search/filter results will be shareable and behave correctly with browser history.
 8. **Optimized atmospheric imagery.** The original hero is delivered as a 112 KB WebP while its full-quality source remains available, preserving the opening mood without an excessive page-weight penalty.
+9. **A catalog that feels browsed, not queried.** Filters use familiar bookstore language, results retain an editorial pace, and book details prioritize story and bookseller context before technical metadata.
+10. **Local typed seed data before Firebase wiring.** The catalog currently uses a realistic typed development collection so UI behavior can be completed and evaluated without credentials. Its shape directly mirrors the planned Firestore documents and will move behind the catalog service later.
 
 ## Completed
 
@@ -121,17 +123,23 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 - [x] Staff-pick cards and initial fictional book content
 - [x] Category exploration, visit, and newsletter sections
 - [x] Baseline keyboard focus and reduced-motion support
+- [x] Typed book model and realistic development catalog
+- [x] Searchable, sortable, filterable catalog
+- [x] URL-synchronized catalog state and pagination
+- [x] Responsive desktop sidebar and mobile filter drawer
+- [x] Editorial book-detail pages
+- [x] Related-book recommendations and missing-book state
 
 ## Pending roadmap
 
 ### Phase 2 — Catalog
 
-- [ ] Define typed book and genre models
-- [ ] Add development seed data
-- [ ] Build browse page and responsive filters
-- [ ] Add search, sort, genre, format, price, and stock filters
-- [ ] Synchronize filters with URL parameters
-- [ ] Build book detail pages and related-book recommendations
+- [x] Define typed book and genre models
+- [x] Add development seed data
+- [x] Build browse page and responsive filters
+- [x] Add search, sort, genre, format, price, and stock filters
+- [x] Synchronize filters with URL parameters
+- [x] Build book detail pages and related-book recommendations
 
 ### Phase 3 — Authentication and customer features
 
@@ -158,4 +166,4 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 
 ## Recommended next feature
 
-Build the catalog and book-detail experience next. It establishes the central data model and reusable book components before authentication, cart, wishlist, and admin features depend on them.
+Build authentication and the shopping bag together next. Authentication establishes customer identity, while the bag provides the first complete browse-to-action journey and naturally proves guest persistence plus sign-in merging. Wishlist can then reuse the same identity and Firestore patterns.
