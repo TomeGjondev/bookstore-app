@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { BookOpen, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
+import { useAuth } from '../../features/auth/auth.context'
+import { useCart } from '../../features/cart/cart.context'
 
 const links = [
   { label: 'Books', to: '/books' },
@@ -11,6 +13,8 @@ const links = [
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const { user } = useAuth()
+  const { itemCount } = useCart()
 
   return (
     <header className="site-header">
@@ -28,8 +32,9 @@ export function Header() {
         </nav>
         <div className="nav-actions">
           <Link className="icon-button hide-small" to="/books" aria-label="Search books"><Search size={20} /></Link>
-          <Link className="icon-button hide-small" to="/account" aria-label="Your account"><UserRound size={20} /></Link>
-          <Link className="bag-link" to="/cart" aria-label="Book bag, 0 items"><ShoppingBag size={20} /><span className="bag-label">Bag</span><span className="bag-count">0</span></Link>
+          <Link className="icon-button hide-small" to={user ? '/account' : '/login'} aria-label={user ? 'Your account' : 'Sign in'}><UserRound size={20} /></Link>
+          <Link className="bag-link" to="/cart" aria-label={`Book bag, ${itemCount} items`}><ShoppingBag size={20} /><span className="bag-label">Bag</span><span className="bag-count" aria-hidden="true">{itemCount}</span></Link>
+          <span className="sr-only" aria-live="polite">{itemCount} {itemCount === 1 ? 'item' : 'items'} in your book bag</span>
         </div>
       </div>
     </header>

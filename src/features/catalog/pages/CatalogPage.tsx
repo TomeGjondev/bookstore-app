@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { ChevronDown, Filter, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
-import { books, genres } from '../catalog.data'
 import { filterBooks } from '../catalog.utils'
 import { CatalogBookCard } from '../components/CatalogBookCard'
+import { useCatalog } from '../catalog.context'
 
 const PAGE_SIZE = 8
 
@@ -16,6 +16,7 @@ const priceLabels: Record<string, string> = {
 export function CatalogPage() {
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { books, genres } = useCatalog()
 
   const filters = {
     query: params.get('q') ?? '',

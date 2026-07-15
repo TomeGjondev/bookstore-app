@@ -1,4 +1,5 @@
 export type BookFormat = 'Hardcover' | 'Paperback'
+export type BookStatus = 'draft' | 'active' | 'archived'
 
 export type CoverPalette =
   | 'amber'
@@ -34,4 +35,7 @@ export interface Book {
   staffNote?: string
   coverPalette: CoverPalette
   coverMark: string
+  coverUrl?: string
+  coverPath?: string
+  status?: BookStatus
 }

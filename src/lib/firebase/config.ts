@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -9,4 +9,8 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-export const firebaseApp = initializeApp(firebaseConfig)
+export const isFirebaseConfigured = Object.values(firebaseConfig).every(Boolean)
+
+export const firebaseApp: FirebaseApp | null = isFirebaseConfigured
+  ? initializeApp(firebaseConfig)
+  : null

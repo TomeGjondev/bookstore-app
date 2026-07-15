@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { BookCard, type FeaturedBook } from '../components/BookCard'
 
 const books: FeaturedBook[] = [
-  { title: 'The Map of Small Things', author: 'Elena Moss', price: '$18.00', palette: 'cover-ochre', label: 'Mara’s pick', mark: '✦' },
-  { title: 'When the River Remembers', author: 'Jon Bellweather', price: '$21.00', palette: 'cover-river', mark: '≈' },
-  { title: 'Letters from the Greenhouse', author: 'Iris Wren', price: '$16.50', palette: 'cover-moss', label: 'Bestseller', mark: '❦' },
-  { title: 'A Study in Starlight', author: 'C. A. Nightingale', price: '$24.00', palette: 'cover-night', mark: '✧' },
+  { id: 'book-map-small-things', slug: 'the-map-of-small-things', title: 'The Map of Small Things', author: 'Elena Moss', price: '$18.00', palette: 'cover-ochre', label: 'Mara’s pick', mark: '✦' },
+  { id: 'book-river-remembers', slug: 'when-the-river-remembers', title: 'When the River Remembers', author: 'Jon Bellweather', price: '$21.00', palette: 'cover-river', mark: '≈' },
+  { id: 'book-greenhouse-letters', slug: 'letters-from-the-greenhouse', title: 'Letters from the Greenhouse', author: 'Iris Wren', price: '$16.50', palette: 'cover-moss', label: 'Bestseller', mark: '❦' },
+  { id: 'book-starlight', slug: 'a-study-in-starlight', title: 'A Study in Starlight', author: 'C. A. Nightingale', price: '$24.00', palette: 'cover-night', mark: '✧' },
 ]
 
 const categories = [

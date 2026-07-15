@@ -1,15 +1,18 @@
-import { Heart, Plus, Star } from 'lucide-react'
+import { Plus, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Book } from '../catalog.types'
 import { formatPrice } from '../catalog.utils'
 import { BookCover } from './BookCover'
+import { useCart } from '../../cart/cart.context'
+import { WishlistButton } from '../../wishlist/components/WishlistButton'
 
 export function CatalogBookCard({ book }: { book: Book }) {
+  const { addItem } = useCart()
   return (
     <article className="catalog-card">
       <div className="catalog-card-visual">
         {book.staffPick && <span className="catalog-ribbon">Staff pick</span>}
-        <button className="favorite-button" type="button" aria-label={`Save ${book.title} to your wishlist`}><Heart size={18} /></button>
+        <WishlistButton bookId={book.id} title={book.title} />
         <Link to={`/books/${book.slug}`} aria-label={`View ${book.title}`}><BookCover book={book} /></Link>
       </div>
       <div className="catalog-card-copy">
@@ -18,7 +21,7 @@ export function CatalogBookCard({ book }: { book: Book }) {
         <p>{book.author}</p>
         <div className="catalog-card-bottom">
           <div><strong>{formatPrice(book.price)}</strong><small>{book.format}</small></div>
-          <button type="button" aria-label={`Add ${book.title} to bag`} disabled={!book.inStock}><Plus size={18} /></button>
+          <button type="button" aria-label={`Add ${book.title} to bag`} disabled={!book.inStock} onClick={() => addItem(book.id)}><Plus size={18} /></button>
         </div>
         {!book.inStock && <span className="stock-note">Back soon</span>}
       </div>

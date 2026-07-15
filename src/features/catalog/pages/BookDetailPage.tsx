@@ -1,17 +1,21 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, Check, Heart, Minus, Plus, ShieldCheck, ShoppingBag, Star, Truck } from 'lucide-react'
+import { ArrowLeft, Check, Minus, Plus, ShieldCheck, ShoppingBag, Star, Truck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { books } from '../catalog.data'
 import { formatPrice } from '../catalog.utils'
 import { BookCover } from '../components/BookCover'
 import { CatalogBookCard } from '../components/CatalogBookCard'
+import { useCart } from '../../cart/cart.context'
+import { WishlistButton } from '../../wishlist/components/WishlistButton'
+import { useCatalog } from '../catalog.context'
 
 export function BookDetailPage() {
   const { slug } = useParams()
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const { addItem } = useCart()
+  const { books } = useCatalog()
   const book = books.find((item) => item.slug === slug)
-  const related = useMemo(() => books.filter((item) => item.genre === book?.genre && item.id !== book?.id).slice(0, 3), [book])
+  const related = useMemo(() => books.filter((item) => item.genre === book?.genre && item.id !== book?.id).slice(0, 3), [book, books])
 
   if (!book) {
     return (
@@ -42,8 +46,8 @@ export function BookDetailPage() {
             <p className={book.inStock ? 'availability in-stock' : 'availability'}><span />{book.inStock ? `In stock — ${book.inventoryCount} copies in the shop` : 'Temporarily out of stock'}</p>
             <div className="purchase-controls">
               <div className="quantity-control" aria-label="Quantity"><button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity === 1} aria-label="Decrease quantity"><Minus size={16} /></button><span aria-live="polite">{quantity}</span><button type="button" onClick={() => setQuantity(Math.min(book.inventoryCount || 1, quantity + 1))} disabled={!book.inStock || quantity >= book.inventoryCount} aria-label="Increase quantity"><Plus size={16} /></button></div>
-              <button className="button add-bag-button" type="button" disabled={!book.inStock} onClick={() => setAdded(true)}>{added ? <><Check size={18} /> Added for this visit</> : <><ShoppingBag size={18} /> Add to book bag</>}</button>
-              <button className="detail-heart" type="button" aria-label={`Save ${book.title} to wishlist`}><Heart size={19} /></button>
+              <button className="button add-bag-button" type="button" disabled={!book.inStock} onClick={() => { addItem(book.id, quantity); setAdded(true) }}>{added ? <><Check size={18} /> Added to your bag</> : <><ShoppingBag size={18} /> Add to book bag</>}</button>
+              <WishlistButton bookId={book.id} title={book.title} className="detail-heart" />
             </div>
             <div className="purchase-assurances"><span><Truck size={17} /> Free local delivery over $35</span><span><ShieldCheck size={17} /> Carefully wrapped in recyclable paper</span></div>
           </div>

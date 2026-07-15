@@ -109,6 +109,20 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 8. **Optimized atmospheric imagery.** The original hero is delivered as a 112 KB WebP while its full-quality source remains available, preserving the opening mood without an excessive page-weight penalty.
 9. **A catalog that feels browsed, not queried.** Filters use familiar bookstore language, results retain an editorial pace, and book details prioritize story and bookseller context before technical metadata.
 10. **Local typed seed data before Firebase wiring.** The catalog currently uses a realistic typed development collection so UI behavior can be completed and evaluated without credentials. Its shape directly mirrors the planned Firestore documents and will move behind the catalog service later.
+11. **Honest pre-configuration authentication.** Account screens remain polished before Firebase credentials exist, but clearly explain that real account actions require a configured project. There is no fake successful login state.
+12. **Guest-first shopping bag.** Visitors can build a persistent device-local bag immediately. After authentication, guest quantities merge into the user-owned Firestore cart and subsequent mutations are stored remotely.
+13. **Security is part of the feature.** Firestore rules restrict customer profiles, carts, and wishlists to their owner; privileged catalog writes require an admin custom claim.
+14. **Wishlist intent survives authentication.** If a signed-out reader taps a heart, the pending book is remembered only for the current browser session, the reader signs in, and the book is then saved to their Firestore wishlist.
+15. **Reader preferences stay modest and useful.** Profiles collect only a display name, favorite shelves, and an optional newsletter preference—enough to personalize future recommendations without turning the bookstore into a data form.
+16. **Admin access is proven twice.** The interface checks the Firebase `admin` ID-token claim before rendering, while Firestore rules independently enforce every privileged write. An unconfigured project exposes only a clearly labeled, non-writing preview.
+17. **One catalog source after configuration.** Public pages load active Firestore books and fall back to typed development data only when Firebase is unavailable. Admin publication changes therefore affect the real storefront.
+18. **Archiving over deletion.** Books leave public shelves without losing their record, protecting future cart, wishlist, and order references.
+19. **Two valid cover paths.** Books may use an uploaded photographic/illustrated cover or the cohesive generated bookshop treatment. This keeps development content beautiful while supporting real catalog assets later.
+20. **Storage validates twice.** The form rejects unsupported types and oversized files immediately; Firebase Storage rules independently require an admin claim, image MIME type, and a size below 5 MB.
+21. **Inventory belongs near the list.** Frequent shelf counts can be adjusted from the management table without opening the full editorial form, while `inStock` remains derived from the saved count.
+22. **Business logic stays testable outside React.** Cart transitions and guest/user merges live in a pure reducer module, while catalog and upload validation remain deterministic utilities. Fast tests can therefore cover the important edge cases without rendering the application.
+23. **Security rules are executable requirements.** Firestore and Storage permissions are tested against Firebase's local emulators for public catalog visibility, owner-only customer data, admin-only catalog writes, and safe cover uploads.
+24. **Navigation and dialogs manage focus deliberately.** Route changes move keyboard focus to the new main content; admin dialogs trap focus, close with Escape, restore the prior focus target, and prevent background scrolling.
 
 ## Completed
 
@@ -129,6 +143,36 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 - [x] Responsive desktop sidebar and mobile filter drawer
 - [x] Editorial book-detail pages
 - [x] Related-book recommendations and missing-book state
+- [x] Firebase email/password authentication service and session provider
+- [x] Registration, login, password reset, and protected account route
+- [x] Guest shopping bag with device persistence
+- [x] Authenticated Firestore cart and guest-cart merge
+- [x] Working add-to-bag actions across homepage, catalog, and book details
+- [x] Responsive cart, delivery threshold, quantities, and empty state
+- [x] Customer account overview and sign-out flow
+- [x] Firestore ownership and admin security rules
+- [x] Firestore-backed wishlist with optimistic heart interactions
+- [x] Wishlist intent restoration after sign-in
+- [x] Responsive wishlist page with loading and empty states
+- [x] Editable display name and reader preferences
+- [x] Profile success, error, and loading feedback
+- [x] Custom-claim protected admin routes
+- [x] Dedicated responsive bookseller workspace
+- [x] Admin dashboard and catalog health metrics
+- [x] Searchable, status-aware book management table
+- [x] Archive confirmation and soft-archive workflow
+- [x] Shared create/edit book form and publication controls
+- [x] Firestore-backed public catalog with development fallback
+- [x] Starter-catalog import for an empty Firestore project
+- [x] Firebase Storage cover upload and progress feedback
+- [x] Uploaded-cover rendering throughout the storefront
+- [x] Admin-only Storage rules with MIME and size validation
+- [x] Quick inventory adjustment dialog
+- [x] One-click restoration of archived books
+- [x] Cart reducer, catalog utility, and cover-validation tests (9 tests)
+- [x] Firestore and Storage emulator rules tests (4 tests)
+- [x] Route-change focus management and live cart-count announcements
+- [x] Keyboard-safe admin dialogs with focus trapping and Escape dismissal
 
 ## Pending roadmap
 
@@ -143,27 +187,27 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 
 ### Phase 3 — Authentication and customer features
 
-- [ ] Firebase email/password authentication
-- [ ] Registration, login, password recovery, and protected routes
-- [ ] Guest and authenticated shopping carts
-- [ ] Guest-cart merge after sign-in
-- [ ] Wishlist and profile pages
+- [x] Firebase email/password authentication
+- [x] Registration, login, password recovery, and protected routes
+- [x] Guest and authenticated shopping carts
+- [x] Guest-cart merge after sign-in
+- [x] Wishlist and profile pages
 
 ### Phase 4 — Admin
 
-- [ ] Admin custom claims and route guard
-- [ ] Firestore and Storage security rules
-- [ ] Book list, create, edit, archive, and restore workflows
-- [ ] Cover upload and inventory management
+- [x] Admin custom claims and route guard
+- [x] Firestore and Storage security rules
+- [x] Book list, create, edit, archive, and restore-ready workflows
+- [x] Cover upload and inventory management
 
 ### Phase 5 — Quality
 
-- [ ] Automated reducer and utility tests
+- [x] Automated reducer and utility tests
 - [ ] End-to-end tests for major customer journeys
 - [ ] Full keyboard and screen-reader review
 - [ ] Responsive and performance pass
-- [ ] Firebase Emulator validation
+- [x] Firebase Emulator validation
 
 ## Recommended next feature
 
-Build authentication and the shopping bag together next. Authentication establishes customer identity, while the bag provides the first complete browse-to-action journey and naturally proves guest persistence plus sign-in merging. Wishlist can then reuse the same identity and Firestore patterns.
+Add browser-level tests for the browse-to-bag, authentication, wishlist, and admin publication journeys. Pair that work with a full keyboard/screen-reader audit and a measured mobile performance pass before introducing checkout or further catalog features.
