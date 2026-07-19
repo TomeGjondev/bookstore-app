@@ -16,7 +16,7 @@ const priceLabels: Record<string, string> = {
 export function CatalogPage() {
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { books, genres } = useCatalog()
+  const { books, genres, loading, error, refresh } = useCatalog()
 
   const filters = {
     query: params.get('q') ?? '',
@@ -119,7 +119,11 @@ export function CatalogPage() {
 
         <div className="catalog-results">
           <div className="results-heading"><p><strong>{results.length}</strong> {results.length === 1 ? 'book' : 'books'} found</p><span>Page {page} of {totalPages}</span></div>
-          {visibleBooks.length > 0 ? (
+          {loading && books.length === 0 ? (
+            <div className="catalog-empty"><span className="book-loader" /><h2>Reading the shelves…</h2></div>
+          ) : error ? (
+            <div className="catalog-empty" role="alert"><span aria-hidden="true">⌇</span><h2>The shelves are temporarily unavailable</h2><p>{error}</p><button className="button button-ink" type="button" onClick={() => void refresh()}>Try again</button></div>
+          ) : visibleBooks.length > 0 ? (
             <div className="catalog-grid">{visibleBooks.map((book) => <CatalogBookCard key={book.id} book={book} />)}</div>
           ) : (
             <div className="catalog-empty"><span aria-hidden="true">⌇</span><h2>No books found on this shelf</h2><p>Try a broader search, or let us return you to everything in the shop.</p><button className="button button-ink" type="button" onClick={clearFilters}>Browse all books</button></div>

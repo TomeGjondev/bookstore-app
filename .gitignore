@@ -3,6 +3,8 @@ dist
 .env
 .env.local
 *.local
+service-account*.json
+*-firebase-adminsdk-*.json
 .DS_Store
 npm-debug.log*
 *-debug.log

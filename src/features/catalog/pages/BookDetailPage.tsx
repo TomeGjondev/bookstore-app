@@ -13,9 +13,17 @@ export function BookDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const { addItem } = useCart()
-  const { books } = useCatalog()
+  const { books, loading, error, refresh } = useCatalog()
   const book = books.find((item) => item.slug === slug)
   const related = useMemo(() => books.filter((item) => item.genre === book?.genre && item.id !== book?.id).slice(0, 3), [book, books])
+
+  if (!book && loading) {
+    return <main id="main-content" className="book-not-found page-shell"><span className="book-loader" /><h1>Reading the shelves…</h1></main>
+  }
+
+  if (!book && error) {
+    return <main id="main-content" className="book-not-found page-shell" role="alert"><span aria-hidden="true">⌇</span><h1>The shelves are temporarily unavailable.</h1><p>{error}</p><button className="button button-ink" type="button" onClick={() => void refresh()}>Try again</button></main>
+  }
 
   if (!book) {
     return (

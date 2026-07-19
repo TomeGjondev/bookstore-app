@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { ref, uploadBytes } from 'firebase/storage'
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { deleteObject, ref, uploadBytes } from 'firebase/storage'
 
 let environment: RulesTestEnvironment
 
@@ -35,8 +35,43 @@ describe('Firestore rules', () => {
     const owner = environment.authenticatedContext('reader-a').firestore()
     const stranger = environment.authenticatedContext('reader-b').firestore()
     const cartLine = doc(owner, 'users', 'reader-a', 'cart', 'book-a')
-    await assertSucceeds(setDoc(cartLine, { bookId: 'book-a', quantity: 1 }))
+    await assertSucceeds(setDoc(cartLine, { bookId: 'book-a', quantity: 1, updatedAt: serverTimestamp() }))
     await assertFails(getDoc(doc(stranger, 'users', 'reader-a', 'cart', 'book-a')))
+  })
+
+  it('rejects malformed customer-owned data', async () => {
+    const owner = environment.authenticatedContext('reader-a').firestore()
+    await assertFails(setDoc(doc(owner, 'users', 'reader-a', 'cart', 'book-a'), {
+      bookId: 'different-book', quantity: 1, updatedAt: serverTimestamp(),
+    }))
+    await assertFails(setDoc(doc(owner, 'users', 'reader-a', 'cart', 'book-a'), {
+      bookId: 'book-a', quantity: 0, updatedAt: serverTimestamp(),
+    }))
+    await assertFails(setDoc(doc(owner, 'users', 'reader-a', 'wishlist', 'book-a'), {
+      bookId: 'book-a', addedAt: serverTimestamp(), injected: true,
+    }))
+  })
+
+  it('prevents customers from changing roles or adding arbitrary profile fields', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'users', 'reader-a'), {
+        displayName: 'Reader', email: 'reader@example.com', role: 'customer',
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      })
+    })
+    const owner = environment.authenticatedContext('reader-a').firestore()
+    await assertFails(updateDoc(doc(owner, 'users', 'reader-a'), { role: 'admin' }))
+    await assertFails(updateDoc(doc(owner, 'users', 'reader-a'), { creditBalance: 1000 }))
+    await assertSucceeds(updateDoc(doc(owner, 'users', 'reader-a'), {
+      displayName: 'A Reader', updatedAt: serverTimestamp(),
+    }))
+  })
+
+  it('reserves order creation for trusted server code', async () => {
+    const customer = environment.authenticatedContext('reader').firestore()
+    await assertFails(setDoc(doc(customer, 'orders', 'order-a'), {
+      userId: 'reader', total: 1, status: 'paid',
+    }))
   })
 
   it('requires the admin claim for catalog writes', async () => {
@@ -54,5 +89,6 @@ describe('Storage rules', () => {
     await assertSucceeds(uploadBytes(ref(adminStorage, 'book-covers/book-a/cover.webp'), new Uint8Array([1, 2, 3]), { contentType: 'image/webp' }))
     await assertFails(uploadBytes(ref(customerStorage, 'book-covers/book-a/other.webp'), new Uint8Array([1]), { contentType: 'image/webp' }))
     await assertFails(uploadBytes(ref(adminStorage, 'book-covers/book-a/notes.txt'), new Uint8Array([1]), { contentType: 'text/plain' }))
+    await assertSucceeds(deleteObject(ref(adminStorage, 'book-covers/book-a/cover.webp')))
   })
 })

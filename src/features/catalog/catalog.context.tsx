@@ -7,6 +7,7 @@ interface CatalogContextValue {
   books: Book[]
   genres: string[]
   loading: boolean
+  error: string
   usingDevelopmentData: boolean
   refresh: () => Promise<void>
 }
@@ -14,24 +15,36 @@ interface CatalogContextValue {
 const CatalogContext = createContext<CatalogContextValue | null>(null)
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [books, setBooks] = useState(seedBooks)
+  const [books, setBooks] = useState(import.meta.env.DEV ? seedBooks : [])
   const [loading, setLoading] = useState(true)
-  const [usingDevelopmentData, setUsingDevelopmentData] = useState(true)
+  const [error, setError] = useState('')
+  const [usingDevelopmentData, setUsingDevelopmentData] = useState(import.meta.env.DEV)
 
   const refresh = useCallback(async () => {
     setLoading(true)
+    setError('')
     try {
       const remoteBooks = await getActiveBooks()
-      if (remoteBooks) {
+      if (remoteBooks !== null) {
         setBooks(remoteBooks)
         setUsingDevelopmentData(false)
-      } else {
+      } else if (import.meta.env.DEV) {
         setBooks(seedBooks)
         setUsingDevelopmentData(true)
+      } else {
+        setBooks([])
+        setUsingDevelopmentData(false)
+        setError('The catalog is not connected. Please try again later.')
       }
     } catch {
-      setBooks(seedBooks)
-      setUsingDevelopmentData(true)
+      if (import.meta.env.DEV) {
+        setBooks(seedBooks)
+        setUsingDevelopmentData(true)
+      } else {
+        setBooks([])
+        setUsingDevelopmentData(false)
+        setError('We could not reach the catalog. Please try again in a moment.')
+      }
     } finally {
       setLoading(false)
     }
@@ -43,9 +56,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     books,
     genres: [...new Set(books.map((book) => book.genre))],
     loading,
+    error,
     usingDevelopmentData,
     refresh,
-  }), [books, loading, usingDevelopmentData, refresh])
+  }), [books, loading, error, usingDevelopmentData, refresh])
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>
 }

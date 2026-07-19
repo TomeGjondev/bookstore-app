@@ -1,5 +1,5 @@
-import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, signOut as firebaseSignOut, updateProfile } from 'firebase/auth'
-import { doc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore'
+import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, signOut as firebaseSignOut, updateProfile, type User } from 'firebase/auth'
+import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore'
 import { firebaseApp } from '../../lib/firebase/config'
 
 export const auth = firebaseApp ? getAuth(firebaseApp) : null
@@ -16,17 +16,33 @@ export async function signIn(email: string, password: string) {
 
 export async function register(name: string, email: string, password: string) {
   const credential = await createUserWithEmailAndPassword(requireAuth(), email, password)
-  await updateProfile(credential.user, { displayName: name })
-  if (db) {
-    await setDoc(doc(db, 'users', credential.user.uid), {
-      displayName: name,
-      email: credential.user.email,
-      role: 'customer',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }, { merge: true })
-  }
+  await Promise.allSettled([
+    updateProfile(credential.user, { displayName: name }),
+    synchronizeUserProfile(credential.user, name),
+  ])
   return credential
+}
+
+export async function synchronizeUserProfile(user: User, displayName?: string) {
+  if (!db) return
+  const reference = doc(db, 'users', user.uid)
+  const snapshot = await getDoc(reference)
+  const resolvedDisplayName = displayName?.trim() || user.displayName?.trim()
+  const profile = {
+    email: user.email ?? '',
+    updatedAt: serverTimestamp(),
+    ...(resolvedDisplayName ? { displayName: resolvedDisplayName } : {}),
+  }
+  if (snapshot.exists()) {
+    await setDoc(reference, profile, { merge: true })
+    return
+  }
+  await setDoc(reference, {
+    ...profile,
+    displayName: resolvedDisplayName || 'Reader',
+    role: 'customer',
+    createdAt: serverTimestamp(),
+  })
 }
 
 export async function requestPasswordReset(email: string) {

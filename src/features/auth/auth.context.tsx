@@ -1,6 +1,6 @@
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { auth, register, requestPasswordReset, signIn, signOut, updateDisplayName } from './auth.service'
+import { auth, register, requestPasswordReset, signIn, signOut, synchronizeUserProfile, updateDisplayName } from './auth.service'
 
 interface AuthContextValue {
   user: User | null
@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser)
       setLoading(false)
+      if (nextUser) void synchronizeUserProfile(nextUser).catch(() => undefined)
     })
   }, [])
 

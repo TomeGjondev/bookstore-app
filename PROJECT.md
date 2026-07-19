@@ -55,6 +55,22 @@ src/
 
 Book and genre imagery will live in Firebase Storage. Admin authorization will use custom claims and be enforced by Firestore and Storage rules, never only by route visibility.
 
+### Admin access
+
+Admin claims are managed only through the Firebase Admin SDK. Authenticate locally
+with Application Default Credentials, then grant or revoke access with:
+
+```sh
+export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
+npm run admin:claim -- grant reader@example.com
+npm run admin:claim -- revoke reader@example.com
+```
+
+The command preserves unrelated custom claims and revokes refresh tokens. The user
+must sign in again before the updated claim is available to the application. A
+previously issued token can remain valid for up to one hour after revocation. Never
+commit a service-account credential file.
+
 ## State management decisions
 
 - Authentication: application-level context subscribing to Firebase Auth
@@ -170,7 +186,7 @@ Warm paper, walnut wood, oxblood red, moss green, muted ochre, editorial serif t
 - [x] Quick inventory adjustment dialog
 - [x] One-click restoration of archived books
 - [x] Cart reducer, catalog utility, and cover-validation tests (9 tests)
-- [x] Firestore and Storage emulator rules tests (4 tests)
+- [x] Firestore and Storage emulator rules tests (7 tests)
 - [x] Route-change focus management and live cart-count announcements
 - [x] Keyboard-safe admin dialogs with focus trapping and Escape dismissal
 

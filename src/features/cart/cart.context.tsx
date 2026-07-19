@@ -35,25 +35,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { books } = useCatalog()
   const [lines, dispatch] = useReducer(cartReducer, [], readGuestCart)
   const linesRef = useRef(lines)
+  const activeUserIdRef = useRef<string | null>(null)
   linesRef.current = lines
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      if (activeUserIdRef.current) {
+        activeUserIdRef.current = null
+        const guestLines = readGuestCart()
+        linesRef.current = guestLines
+        dispatch({ type: 'hydrate', lines: guestLines })
+      }
+      return
+    }
+
+    const previousUserId = activeUserIdRef.current
+    activeUserIdRef.current = user.uid
+    if (previousUserId && previousUserId !== user.uid) {
+      linesRef.current = []
+      dispatch({ type: 'hydrate', lines: [] })
+    }
 
     let active = true
     void getUserCart(user.uid).then(async (remoteLines) => {
-      if (!active) return
+      if (!active || activeUserIdRef.current !== user.uid) return
       const merged = mergeCartLines(remoteLines, linesRef.current)
+      linesRef.current = merged
       dispatch({ type: 'hydrate', lines: merged })
       localStorage.removeItem(GUEST_CART_KEY)
       await Promise.all(merged.map((line) => saveUserCartLine(user.uid, line)))
-    })
+    }).catch(() => undefined)
     return () => { active = false }
   }, [user])
-
-  useEffect(() => {
-    if (!user) localStorage.setItem(GUEST_CART_KEY, JSON.stringify(lines))
-  }, [lines, user, books])
 
   const value = useMemo<CartContextValue>(() => {
     const detailedLines = lines.flatMap((line) => {
@@ -66,25 +79,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
       itemCount: lines.reduce((total, line) => total + line.quantity, 0),
       subtotal: detailedLines.reduce((total, line) => total + line.book.price * line.quantity, 0),
       addItem: (bookId, quantity = 1) => {
-        dispatch({ type: 'add', bookId, quantity })
+        const action = { type: 'add' as const, bookId, quantity }
+        const nextLines = cartReducer(linesRef.current, action)
+        linesRef.current = nextLines
+        dispatch(action)
         if (user) {
-          const current = lines.find((line) => line.bookId === bookId)?.quantity ?? 0
-          void saveUserCartLine(user.uid, { bookId, quantity: current + quantity })
-        }
+          const nextQuantity = nextLines.find((line) => line.bookId === bookId)?.quantity ?? quantity
+          void saveUserCartLine(user.uid, { bookId, quantity: nextQuantity }).catch(() => undefined)
+        } else localStorage.setItem(GUEST_CART_KEY, JSON.stringify(nextLines))
       },
       updateQuantity: (bookId, quantity) => {
         const safeQuantity = Math.max(1, quantity)
-        dispatch({ type: 'update', bookId, quantity: safeQuantity })
-        if (user) void saveUserCartLine(user.uid, { bookId, quantity: safeQuantity })
+        const action = { type: 'update' as const, bookId, quantity: safeQuantity }
+        const nextLines = cartReducer(linesRef.current, action)
+        linesRef.current = nextLines
+        dispatch(action)
+        if (user) void saveUserCartLine(user.uid, { bookId, quantity: safeQuantity }).catch(() => undefined)
+        else localStorage.setItem(GUEST_CART_KEY, JSON.stringify(nextLines))
       },
       removeItem: (bookId) => {
-        dispatch({ type: 'remove', bookId })
-        if (user) void removeUserCartLine(user.uid, bookId)
+        const action = { type: 'remove' as const, bookId }
+        const nextLines = cartReducer(linesRef.current, action)
+        linesRef.current = nextLines
+        dispatch(action)
+        if (user) void removeUserCartLine(user.uid, bookId).catch(() => undefined)
+        else localStorage.setItem(GUEST_CART_KEY, JSON.stringify(nextLines))
       },
       clearCart: () => {
-        const ids = lines.map((line) => line.bookId)
+        const ids = linesRef.current.map((line) => line.bookId)
+        linesRef.current = []
         dispatch({ type: 'clear' })
-        if (user) void Promise.all(ids.map((id) => removeUserCartLine(user.uid, id)))
+        if (user) void Promise.all(ids.map((id) => removeUserCartLine(user.uid, id))).catch(() => undefined)
+        else localStorage.setItem(GUEST_CART_KEY, '[]')
       },
     }
   }, [lines, user, books])
